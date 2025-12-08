@@ -374,10 +374,12 @@ class ResultScreen(Screen):
             'DEFAULT': '#06B6D4'  # Cyan
         }
 
-    def subscribe_vip(self):
+        def subscribe_vip(self):
         """Triggered when the Subscribe button is pressed."""
         self.show_fortune_popup(
             "VIP Subscription",
+            "Processing payment...\n"
+            "$5.00 charged.\n"
             "Subscription Successful!\n\nYou have unlocked exclusive VIP insights and the ability to save your destiny."
         )
 
@@ -446,10 +448,10 @@ class ResultScreen(Screen):
                 for category, data in self.current_fortune_results.items():
                     writer.writerow({'Category': data['label'], 'Prediction': data['sentence']})
 
-            # VIP Prompt logic
+             # VIP Prompt logic
             self.show_fortune_popup(
                 "VIP Access",
-                f"Processing payment...\n$5.00 charged.\n\nDestiny archived to:\n{filename}"
+                f"Destiny archived to:\n{filename}"
             )
             print(f"Results saved to {filename}")
 
