@@ -198,3 +198,57 @@ KV_LAYOUT = '''
                 bold: True
                 on_release: app.root.current = 'main'
 '''
+# --- Python Logic ---
+
+class FortunePopup(Popup):
+    """
+    Custom Popup class to display detailed fortune results.
+    Handles dynamic text wrapping and scrolling.
+    """
+
+    def __init__(self, title, content_text, **kwargs):
+        super().__init__(**kwargs)
+        self.title = title
+        self.title_size = '20sp'
+        self.title_color = get_color_from_hex('#38BDF8')
+        self.size_hint = (0.85, 0.6)
+        self.auto_dismiss = True
+
+        # Popup styling
+        self.separator_color = get_color_from_hex('#38BDF8')
+
+        layout = BoxLayout(orientation='vertical', padding=20, spacing=15)
+
+        scroll = ScrollView()
+
+        self.label = Label(
+            text=content_text,
+            size_hint_y=None,
+            halign='center',
+            valign='top',
+            font_size='18sp',
+            line_height=1.5,
+            color=(1, 1, 1, 1)
+        )
+
+        # Bind width to text_size to ensure proper wrapping
+        self.label.bind(width=lambda *x: self.label.setter('text_size')(self.label, (self.label.width, None)))
+        # Bind texture_size to height to ensure the scrollview works correctly
+        self.label.bind(texture_size=self.update_height)
+
+        scroll.add_widget(self.label)
+
+        close_btn = Factory.RoundedButton(
+            text="Close",
+            size_hint_y=None,
+            height='45dp',
+            background_color=get_color_from_hex('#475569')
+        )
+        close_btn.bind(on_release=self.dismiss)
+
+        layout.add_widget(scroll)
+        layout.add_widget(close_btn)
+        self.content = layout
+
+    def update_height(self, instance, size):
+        instance.height = size[1]
