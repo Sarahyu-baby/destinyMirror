@@ -252,3 +252,103 @@ class FortunePopup(Popup):
 
     def update_height(self, instance, size):
         instance.height = size[1]
+class MainScreen(Screen):
+    """
+    Main screen for camera preview and capturing.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.capture = None
+        self.analyzer = FaceAnalyzer()
+        self.visualizer = FaceVisualizer()
+        self.update_event = None
+        self.current_frame = None
+
+        self.predictor = None
+        Clock.schedule_once(self.init_predictor, 0.5)
+
+    def init_predictor(self, dt):
+        """Initialize the ML predictor in a scheduled event."""
+        self.predictor = DestinyPredictor()
+        if self.predictor.is_ready:
+            self.ids.status_label.text = "AI Core Online. Ready."
+            self.ids.capture_btn.disabled = False
+        else:
+            self.ids.status_label.text = "Error: AI Core Offline (Run train_and_save.py)"
+
+    def on_enter(self):
+        self.start_camera()
+
+    def on_leave(self):
+        self.stop_camera()
+
+    def start_camera(self):
+        if self.capture is None:
+            self.capture = cv2.VideoCapture(0)
+            if not self.capture.isOpened():
+                self.capture = cv2.VideoCapture(1)
+
+        if self.update_event is None and self.capture.isOpened():
+            self.update_event = Clock.schedule_interval(self.update, 1.0 / 30.0)
+        elif not self.capture.isOpened():
+            self.ids.status_label.text = "Error: Camera Access Denied"
+
+    def stop_camera(self):
+        if self.capture:
+            self.capture.release()
+            self.capture = None
+        if self.update_event:
+            self.update_event.cancel()
+            self.update_event = None
+
+    def update(self, dt):
+        """Update loop for camera frame."""
+        if self.capture:
+            ret, frame = self.capture.read()
+            if ret:
+                self.current_frame = frame
+                display_frame = cv2.flip(frame, 1)
+                buf = cv2.flip(display_frame, 0).tobytes()
+                texture = Texture.create(size=(frame.shape[1], frame.shape[0]), colorfmt='bgr')
+                texture.blit_buffer(buf, colorfmt='bgr', bufferfmt='ubyte')
+                self.ids.camera_preview.texture = texture
+
+    def capture_and_analyze(self):
+        if self.current_frame is None:
+            return
+
+        self.ids.status_label.text = "Processing Neural Data..."
+        Clock.schedule_once(self.do_process, 0.1)
+
+    def save_captured_image(self, frame, prefix="face"):
+        save_dir = "captures"
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(save_dir, f"{prefix}_{timestamp}.png")
+        cv2.imwrite(filename, frame)
+        return filename
+
+    def do_process(self, dt):
+        """Process the image, run predictions, and transition to result screen."""
+        stats = self.analyzer.process_image(self.current_frame)
+
+        if stats:
+            fortune_results = self.predictor.predict_fortune(stats)
+            lms_data = self.analyzer.landmarks_np
+            custom_pts_data = self.analyzer.custom_points
+
+            img_to_draw = self.current_frame.copy()
+            img_with_dots = self.visualizer.draw_landmarks(img_to_draw, lms_data)
+            final_visualized_img = self.visualizer.draw_custom_points(img_with_dots, custom_pts_data)
+
+            saved_path = self.save_captured_image(final_visualized_img, prefix="analyzed")
+
+            app = App.get_running_app()
+            result_screen = app.root.get_screen('result')
+            result_screen.display_data(fortune_results, saved_path)
+            app.root.current = 'result'
+            self.ids.status_label.text = "Analysis Complete"
+        else:
+            self.ids.status_label.text = "No Face Detected"
