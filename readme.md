@@ -7,7 +7,6 @@ Destiny Mirror is an advanced facial analysis and fortune-prediction application
 
 The app captures a real-time webcam image, extracts facial landmarks, computes geometric ratios, predicts fortune indicators (Love, Wealth, Health, Social, etc.), and displays results through an interactive UI.
 
-The newest version introduces a VIP subscription system, VIP-exclusive metrics, and a pay-to-save ($5) mechanism for exporting prediction results.
 
 ---
 ## Libraries Used
