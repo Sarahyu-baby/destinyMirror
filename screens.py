@@ -352,3 +352,106 @@ class MainScreen(Screen):
             self.ids.status_label.text = "Analysis Complete"
         else:
             self.ids.status_label.text = "No Face Detected"
+class ResultScreen(Screen):
+    """
+    Screen to display prediction results with interactive buttons.
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.current_fortune_results = {}
+
+        # Color Palette (Hex Codes)
+        self.color_map = {
+            'LOVE': '#EC4899',  # Hot Pink
+            'WEALTH': '#EAB308',  # Golden Yellow
+            'HEALTH': '#22C55E',  # Bright Green
+            'CAREER': '#3B82F6',  # Royal Blue
+            'AUTHORITY': '#A855F7',  # Purple
+            'LATER-LIFE': '#64748B',  # Slate Gray
+            'SOCIAL': '#F97316',  # Orange
+            'CHILDREN': '#14B8A6',  # Teal
+            'DEFAULT': '#06B6D4'  # Cyan
+        }
+
+    def subscribe_vip(self):
+        """Triggered when the Subscribe button is pressed."""
+        self.show_fortune_popup(
+            "VIP Subscription",
+            "Subscription Successful!\n\nYou have unlocked exclusive VIP insights and the ability to save your destiny."
+        )
+
+    def display_data(self, fortune_results, img_path):
+        """Populate the grid with result buttons."""
+        self.current_fortune_results = fortune_results
+
+        if img_path:
+            self.ids.result_image.source = img_path
+            self.ids.result_image.reload()
+
+        grid = self.ids.result_grid
+        grid.clear_widgets()
+
+        for category, data in fortune_results.items():
+            raw_label = data['label']
+            full_sentence = data['sentence']
+
+            key_upper = category.upper().replace("_", "-")
+
+            # --- Generic VIP Logic ---
+            # Use Regex to strip any trailing numbers (e.g., SOCIAL2 -> SOCIAL)
+            base_key = re.sub(r'\d+$', '', key_upper)
+
+            display_text = raw_label
+            # If the key changed (SOCIAL2 != SOCIAL), it's a secondary VIP metric
+            if base_key != key_upper:
+                display_text = f"{base_key} (VIP Content)"
+
+            # Use base_key to find the color (So SOCIAL2 gets SOCIAL's Orange color)
+            hex_color = self.color_map.get(base_key, self.color_map.get('DEFAULT'))
+            bg_color = get_color_from_hex(hex_color)
+
+            # Create a RoundedButton using the Factory
+            btn = Factory.RoundedButton(
+                text=display_text,
+                font_size='14sp' if "(VIP" in display_text else '16sp',
+                bold=True,
+                background_color=bg_color,
+                color=(1, 1, 1, 1)
+            )
+            btn.bind(on_release=lambda instance, t=display_text, c=full_sentence: self.show_fortune_popup(t, c))
+            grid.add_widget(btn)
+
+    def show_fortune_popup(self, title, content):
+        popup = FortunePopup(title=title, content_text=content)
+        popup.open()
+
+    def save_results_to_csv(self):
+        """Save current predictions to a CSV file."""
+        if not self.current_fortune_results:
+            return
+
+        save_dir = "fortune_results"
+        if not os.path.exists(save_dir):
+            os.makedirs(save_dir)
+
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = os.path.join(save_dir, f"fortune_{timestamp}.csv")
+
+        try:
+            with open(filename, mode='w', newline='', encoding='utf-8') as csvfile:
+                fieldnames = ['Category', 'Prediction']
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                for category, data in self.current_fortune_results.items():
+                    writer.writerow({'Category': data['label'], 'Prediction': data['sentence']})
+
+            # VIP Prompt logic
+            self.show_fortune_popup(
+                "VIP Access",
+                f"Processing payment...\n$5.00 charged.\n\nDestiny archived to:\n{filename}"
+            )
+            print(f"Results saved to {filename}")
+
+        except Exception as e:
+            self.show_fortune_popup("Error", f"Failed to save:\n{e}")
