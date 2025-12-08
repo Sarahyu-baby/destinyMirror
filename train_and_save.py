@@ -31,9 +31,19 @@ def save_all_models():
             print(f"Training {label} Model...")
             model, _ = othermodels.train_xgboost_specialized(X, y, label)
             saved_data[label] = model
+    # 4. Train General Model
+    exclude = othermodels.XGB_TARGETS_SPECIAL + ['Love']
+    gen_model, gen_targets, _ = othermodels.train_general_model(X, y, exclude)
+    if gen_model:
+        saved_data['GENERAL'] = {'model': gen_model, 'targets': gen_targets}
 
+    # 5. Save the "Dictionary" (Meaning Map)
+    saved_data['meaning_map'] = meaning_map
 
-
+    # 6. Dump everything to a single file
+    output_file = 'destiny_brain.pkl'
+    joblib.dump(saved_data, output_file)
+    print(f"\nSuccess! All models saved to '{output_file}'")
 
 if __name__ == "__main__":
     save_all_models()
