@@ -1,0 +1,25 @@
+label,value,description
+Career,1,You approach your career with strategy and long-term planning in mind.
+Career,0,You prefer taking practical action rather than focusing on long-term strategies.
+Love,1,You are loyal and committed when you enter a relationship.
+Love,0,You naturally attract others and tend to have a strong romantic presence.
+Love2,1,You remain emotionally steady and calm in relationships.
+Love2,0,"Your emotions can shift quickly, expressing your feelings with intensity."
+Wealth,1,You’re willing to take risks when you see a meaningful financial opportunity.
+Wealth,0,You prefer a steady and conservative approach when handling money.
+Health,1,Your physical and emotional energy tends to remain stable and balanced.
+Health,0,Your energy or mood may fluctuate noticeably at times.
+Children,1,"You naturally support, guide, and nurture younger people around you."
+Children,0,You believe younger generations should grow through their own effort and experience.
+Social,1,"You’re outgoing, expressive, and comfortable engaging with others."
+Social,0,"You’re more reserved and prefer quieter, meaningful interactions."
+Academic,1,"You think in abstract, conceptual ways and enjoy exploring big ideas."
+Academic,0,You approach problems with practical reasoning and structured logic.
+Authority,1,You have a natural leadership presence and often take initiative in group settings.
+Authority,0,You work well under guidance and contribute steadily as part of a team.
+Authority2,1,You actively pursue opportunities and take charge of your direction in life.
+Authority2,0,"You prefer a passive, steady, and low-conflict approach to progress."
+LaterLife,1,You plan ahead thoughtfully and prepare well for your future.
+LaterLife,0,You let life unfold naturally and adapt as things develop.
+Social2,1,You’re quick-witted and respond swiftly in conversations.
+Social2,0,You take more time to process situations and respond thoughtfully.
